@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang='pl'>
+
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Paweł Strycharczuk - praca inżynierska</title>
+    <link rel='preconnect' href='https://fonts.googleapis.com'>
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+    <link href='https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap' rel='stylesheet'>
+	
+	<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.1.1/chart.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.1.1/helpers.esm.min.js"></script>
+		
+		
+</head>
+
+<body>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: url(https://cdn.pixabay.com/photo/2020/06/04/11/10/bulb-5258341_1280.jpg) no-repeat;
+            background-size: cover;
+            font-family: 'Montserrat', sans-serif;
+
+            color: white;
+            text-shadow: 2px 2px #000;
+        }
+
+
+        .column {
+            display: inline-block;
+            width: 34%;
+            padding: 10px;
+			vertical-align: top;
+        }
+
+        .row:after {
+            display: table;
+            clear: both;
+        }
+
+        p.title {
+            font-size: 40px;
+            text-align: center;
+            color: #fff;
+        }
+
+        #elDate,
+        #elTime {
+            font-size: 25px;
+            color: #fff;
+            text-align: center;
+        }
+
+        p.tech_title {
+            font-size: 30px;
+        }
+
+        p.title_network {
+            font-size: 30px;
+            text-align: center;
+        }
+
+        .row {
+            text-align: center;
+        }
+
+		.switch {
+		  position: relative;
+		  display: inline-block;
+		  width: 60px;
+		  height: 34px;
+		}
+
+		.switch input {
+		  opacity: 0;
+		  width: 0;
+		  height: 0;
+		}
+
+		.slider {
+		  position: absolute;
+		  cursor: pointer;
+		  top: 0;
+		  left: 0;
+		  right: 0;
+		  bottom: 0;
+		  background-color: #ccc;
+		  -webkit-transition: .4s;
+		  transition: .4s;
+		  border-radius: 34px;
+		}
+
+		.slider:before {
+		  position: absolute;
+		  content: "";
+		  height: 26px;
+		  width: 26px;
+		  left: 4px;
+		  bottom: 4px;
+		  background-color: white;
+		  -webkit-transition: .4s;
+		  transition: .4s;
+		  border-radius: 50%;
+		}
+
+		input:checked + .slider {
+		  background-color: #2196F3;
+		}
+
+		input:focus + .slider {
+		  box-shadow: 0 0 1px #2196F3;
+		}
+
+		input:checked + .slider:before {
+		  -webkit-transform: translateX(26px);
+		  -ms-transform: translateX(26px);
+		  transform: translateX(26px);
+		}
+		
+		
+		/*Responsive veb design*/
+        @media (max-width: 1024px) {
+            button {
+                font-size: 15px
+            }
+
+            .column {
+                width: 100%;
+                float: none;
+            }
+
+            p.title {
+                font-size: 20px;
+            }
+
+            p.title_network {
+                font-size: 20px;
+            }
+
+            p.tech_title {
+                font-size: 18px;
+            }
+
+            #elDate,
+            #elTime {
+                font-size: 18px;
+            }
+        }
+    </style>
+
+    <p class='title'>Automatyczne sterowanie domową siecią elektryczną</p>
+    <div id='elDate'></div>
+    <div id='elTime'></div>
+
+    <p class='title'>Analiza Sieci</p>
+
+    <div class='row'>
+        <div class='column'>
+            <p class='title_network'>Napięcie <span id='napiecie'>-</span> V</p>
+            <p class='title_network'>Prąd: <span id='prad'>-</span> A</p>
+            <p class='title_network'>Moc: <span id='moc'>-</span> W</p>
+        </div>
+        <div class='column'>
+            <p class='title_network'>Energia pobierana: <span id='import'>-</span> kWh</p>
+            <p class='title_network'>Energia oddawana: <span id='export'>-</span> kWh</p>
+            <p class='title_network'>Całkowita energia: <span id='total'>-</span> kWh</p>
+        </div>
+    </div>
+
+    <p class='title'><b>Kierunek: <span id='kierunek'>-</span></b></p>
+
+	<div class='row'>
+	<div class='column'>
+            <p class='title_network'>Temperatura: <span id='temp'>-</span> °C</p>
+            <p class='title_network'>Ciśnienie: <span id='pres'>-</span> hPa</p>
+		</div>
+	</div>	
+		
+    <div class='row'>
+        <div class='column'>
+            <p class='tech_title'>Sterowanie przekaźnikiem 1</p>
+		<label class="switch">
+		<input type="checkbox" id="TOGGLE_RELAY1">
+		<span class="slider"></span>
+		<p class='tech_title'><span id='relay1_state'> </span></p>
+		</label>
+		<p class='tech_title'></p><br><br><br>
+		<label class="switch">
+		</label>
+        </div>
+
+        <div class='column'>
+            <p class='tech_title'>Sterowanie przekaźnikiem 2</p>
+			<label class="switch">
+			<input type="checkbox" id="TOGGLE_RELAY2">
+			<span class="slider"></span>
+			<p class='tech_title'><span id='relay2_state'> </span></p>
+			</label>
+			
+			<p class='tech_title'>Tryb automatyczny</p>
+			<label class="switch">
+			<input type="checkbox" id="TOGGLE_AUTOMATIC_RELAY2">
+			<span class="slider"></span>
+			</label>
+        </div>
+    </div>
+	
+
+
+    <script>
+
+        // Konfiguracja Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgO8bf3n4nXjz8-GzxyJ6WLlbuBSjjyag",
+			authDomain: "esp32-example-383bf.firebaseapp.com",
+			databaseURL: "https://esp32-example-383bf-default-rtdb.europe-west1.firebasedatabase.app",
+			projectId: "esp32-example-383bf",
+			storageBucket: "esp32-example-383bf.appspot.com",
+			messagingSenderId: "651785574200",
+			appId: "1:651785574200:web:9770e4019da334637ed3cd"
+        };
+
+        // Inicjalizacja Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Pobranie referencji do danych w bazie Firebase
+        const dataRef = database.ref('Siec');
+		const dataRefEne = database.ref('Energia');
+		const dataRefWeather = database.ref('Pogoda');
+
+        // Nasłuchuj zmian w danych i aktualizuj zawartość strony
+        dataRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            document.getElementById('napiecie').innerText = data.Nap;
+            document.getElementById('prad').innerText = data.Prad;
+			document.getElementById('moc').innerText = data.Moc;
+	
+		if (data.Moc > '0.1') {
+			document.getElementById('kierunek').innerHTML ='Pobór energii';
+		}
+		
+		if (data.Moc <'-1.1') {
+			document.getElementById('kierunek').innerHTML ='Eksport energii';
+		}
+		
+		if ((data.Moc< '0.09') && (data.Moc >'-1.0')) {
+			document.getElementById('kierunek').innerHTML ='';
+		}
+			
+        });
+		
+		dataRefEne.on('value', (snapshot) => {
+            const data = snapshot.val();
+            document.getElementById('import').innerText = data.Imp || '-';
+            document.getElementById('export').innerText = data.Exp || '-';
+			document.getElementById('total').innerText = data.Tot || '-';
+		});
+			
+		dataRefWeather.on('value', (snapshot) => {	
+			const data = snapshot.val();
+			document.getElementById('temp').innerText = data.Temp;
+			document.getElementById('pres').innerText = data.Cisn;
+			
+        });
+		
+		// Pobierz referencję do przekaźnika 1 w bazie danych Firebase
+		const relay1Ref = database.ref('RELAY/1');
+
+		// Nasłuchuj zmiany stanu przekaźnika 1 w bazie danych
+		relay1Ref.on('value', (snapshot) => {
+		  const state = snapshot.val();
+		  const toggleSwitch = document.getElementById('TOGGLE_RELAY1');
+		  
+		  // Ustaw stan przycisku Toggle Switch na podstawie odczytanego stanu przekaźnika
+		  toggleSwitch.checked = state === 'ON';
+		});
+
+		// Dodaj nasłuchiwanie zmiany stanu przycisku Toggle Switch dla przekaźnika 1
+		document.getElementById('TOGGLE_RELAY1').addEventListener('change', (event) => {
+		  const state = event.target.checked ? 'ON' : 'OFF';
+		  relay1Ref.set(state); // Ustaw nowy stan przekaźnika w bazie danych Firebase
+		});
+		
+		
+		
+		const relay2Ref = database.ref('RELAY/2');
+		
+		// Nasłuchuj zmiany stanu przekaźnika 2 w bazie danych
+		relay2Ref.on('value', (snapshot) => {
+		  const state = snapshot.val();
+		  const toggleSwitch = document.getElementById('TOGGLE_RELAY2');
+		  
+		  // Ustaw stan przycisku Toggle Switch na podstawie odczytanego stanu przekaźnika
+		  toggleSwitch.checked = state === 'ON';
+		});
+		
+		document.getElementById('TOGGLE_RELAY2').addEventListener('change', (event) => {
+		const state = event.target.checked ? 'ON' : 'OFF';
+		relay2Ref.set(state);
+		});
+		
+		
+		const relay2AutomaticRef = database.ref('RELAY/2Automatyczny');
+
+		// Nasłuchuj zmiany stanu przekaźnika 2 tryb automatyczny w bazie danych
+		relay2AutomaticRef.on('value', (snapshot) => {
+			const state = snapshot.val();
+			const toggleSwitch = document.getElementById('TOGGLE_AUTOMATIC_RELAY2');
+			
+
+			// Ustaw stan przycisku "Tryb automatyczny" na podstawie odczytanego stanu z bazy danych
+			toggleSwitch.checked = state === true;
+			
+			var delayInMilliseconds = 10; //miliseconds
+
+			setTimeout(function() {
+			if (state == true)
+			{
+				relay2Ref.set('ZERO');
+				//toggleSwitch.checked = state === true;
+			}
+			//your code to be executed after 1 second
+			}, delayInMilliseconds);
+			
+			
+			// Zablokuj możliwość zmiany stanu przekaźnika 2, jeśli jest aktywny tryb automatyczny
+			const relay2Toggle = document.getElementById('TOGGLE_RELAY2');
+			relay2Toggle.disabled = toggleSwitch.checked;
+		});
+
+		// Dodaj nasłuchiwanie zmiany stanu przycisku "Tryb automatyczny"
+		document.getElementById('TOGGLE_AUTOMATIC_RELAY2').addEventListener('change', (event) => {
+			const state = event.target.checked; // Pobierz stan przycisku "Tryb automatyczny"
+			relay2AutomaticRef.set(state); // Ustaw wartość klucza w bazie danych Firebase
+		});
+		
+		
+		
+		const elDate = document.querySelector("#elDate");
+        const elTime = document.querySelector("#elTime");
+
+        function lz(i) {
+            return `${i}`.padStart(2, "0");
+        }
+
+        function showTextTime() {
+            const now = new Date();
+
+            const textTime = `Godzina ${lz(now.getHours())} : ${lz(now.getMinutes())} : ${lz(now.getSeconds())}`;
+            const textDate = `Data ${lz(now.getDate())} . ${lz((now.getMonth() + 1))} . ${now.getFullYear()}`;
+
+            elDate.innerHTML = textDate;
+            elTime.innerHTML = textTime;
+
+            window.requestAnimationFrame(showTextTime);
+        }
+		window.requestAnimationFrame(showTextTime);
+		
+		
+		//CHART JS
+		var chrt = document.getElementById("chartId").getContext("2d");
+		var chartId = new Chart(chrt, {
+         type: 'bar',
+         data: {
+            labels: [6],
+            datasets: [{
+               label: "Online Tutorial Subjects",
+               data: test,
+			   backgroundColor: ['lightblue'],
+            }],
+         },
+         options: {
+            responsive: true,
+         },
+      });
+    </script>
+
+</body>
+
+</html>
